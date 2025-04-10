@@ -25,19 +25,6 @@ services:
       test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
       timeout: 5s
       retries: 30
-  email-service:
-    environment:
-      CONTRAST__SERVER__NAME: "Petclinic"
-      CONTRAST__APPLICATION__NAME: "Email-Service"
-      CONTRAST__ASSESS__ENABLE: "true"
-      CONTRAST__PROTECT__ENABLE: "true"
-      CONTRAST__OBSERVE__ENABLE: "true"
-    build:
-      context: ./
-      dockerfile: EmailService/Dockerfile
-    ports:
-      - 8081:8081
-      - 5005:5005
   log4shell-service:
     container_name: Log4ShellServer
     build:
@@ -46,15 +33,29 @@ services:
     ports:
       - 8082:8082
       - 1389:1389
-  petclinic-app:
+  qa-email-service:
     environment:
-      CONTRAST__SERVER__NAME: "Petclinic"
-      CONTRAST__APPLICATION__NAME: "Web-Application"
+      CONTRAST__SERVER__NAME: "QA-Petclinic"
+      CONTRAST__APPLICATION__NAME: "QA-Email-Service"
+      CONTRAST__ASSESS__ENABLE: "true"
+      CONTRAST__PROTECT__ENABLE: "true"
+      CONTRAST__OBSERVE__ENABLE: "true"
+    container_name: email-service-qa
+    build:
+      context: ./
+      dockerfile: EmailService/Dockerfile
+    ports:
+      - 8081:8081
+
+  qa-petclinic-app:
+    environment:
+      CONTRAST__SERVER__NAME: "QA-Petclinic"
+      CONTRAST__APPLICATION__NAME: "QA-Web-Application"
       CONTRAST__ASSESS__ENABLE: "true"
       CONTRAST__PROTECT__ENABLE: "true"
       CONTRAST__OBSERVE__ENABLE: "true"
     image: local/petclinic:latest
-    container_name: petclinic-app
+    container_name: petclinic-app-qa
     build:
       context: ./
       dockerfile: WebApplication/Dockerfile
@@ -64,6 +65,36 @@ services:
       db-1:
         condition: service_healthy
 
+  prod-email-service:
+    environment:
+      CONTRAST__SERVER__NAME: "PROD-Petclinic"
+      CONTRAST__APPLICATION__NAME: "PROD-Email-Service"
+      CONTRAST__ASSESS__ENABLE: "true"
+      CONTRAST__PROTECT__ENABLE: "true"
+      CONTRAST__OBSERVE__ENABLE: "true"
+    container_name: email-service-prod
+    build:
+      context: ./
+      dockerfile: EmailService/Dockerfile
+    ports:
+      - 8181:8081
+  prod-petclinic-app:
+    environment:
+      CONTRAST__SERVER__NAME: "PROD-Petclinic"
+      CONTRAST__APPLICATION__NAME: "PROD-Web-Application"
+      CONTRAST__ASSESS__ENABLE: "true"
+      CONTRAST__PROTECT__ENABLE: "true"
+      CONTRAST__OBSERVE__ENABLE: "true"
+    image: local/petclinic:latest
+    container_name: petclinic-app-prod
+    build:
+      context: ./
+      dockerfile: WebApplication/Dockerfile
+    ports:
+      - "8180:8080"
+    depends_on:
+      db-1:
+        condition: service_healthy
 #  postgres:
 #    image: postgres:15.3
 #    ports:

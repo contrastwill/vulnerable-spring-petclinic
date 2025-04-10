@@ -5,6 +5,7 @@ jndiserver="log4shell-service"
 emailserviceport=8081
 petclinicport=8080 
 
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -h|--host)
@@ -298,7 +299,7 @@ preformWAFBypassExcessiveJsonKeys(){
     rm large_payload.json
 }
 
-preformRouteExercise(){
+preformRouteExerciseQAContainers(){
     loginToPetclinic
     curl -v --cookie <(echo "$cookie") 'http://'"$host"':'$petclinicport'/customers?lastName=test' \
     -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7' \
@@ -315,10 +316,32 @@ preformRouteExercise(){
     -H 'sec-ch-ua-platform: "macOS"'
 
     curl 'http://'"$host"':'$emailserviceport'/deserialize?base64=rO0ABXNyADhvcmcuc3ByaW5nZnJhbWV3b3JrLnNhbXBsZXMuZW1haWxzZXJ2aWNlLm1vZGVsLkVtYWlsRGF0YdBEER'
-
-
 }
 
+preformRouteExerciseProdContainers(){
+    # change ports to prod containers
+    emailserviceport=8181
+    petclinicport=8180
+    loginToPetclinic
+    curl -v --cookie <(echo "$cookie") 'http://'"$host"':'$petclinicport'/customers?lastName=test' \
+    -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7' \
+    -H 'Accept-Language: en-GB,en;q=0.9' \
+    -H 'Connection: keep-alive' \
+    -H 'Sec-Fetch-Dest: document' \
+    -H 'Sec-Fetch-Mode: navigate' \
+    -H 'Sec-Fetch-Site: none' \
+    -H 'Sec-Fetch-User: ?1' \
+    -H 'Upgrade-Insecure-Requests: 1' \
+    -H 'User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36' \
+    -H 'sec-ch-ua: "Google Chrome";v="131", "Chromium";v="131", "Not_A Brand";v="24"' \
+    -H 'sec-ch-ua-mobile: ?0' \
+    -H 'sec-ch-ua-platform: "macOS"'
+
+    curl 'http://'"$host"':'$emailserviceport'/deserialize?base64=rO0ABXNyADhvcmcuc3ByaW5nZnJhbWV3b3JrLnNhbXBsZXMuZW1haWxzZXJ2aWNlLm1vZGVsLkVtYWlsRGF0YdBEER'
+    # change back to what they were originally
+    emailserviceport=8081
+    petclinicport=8080
+}
 # Function to display the menu
 display_menu() {
   echo "---------------------"
@@ -357,7 +380,8 @@ display_menu() {
   echo "29 WAF Bypass Excessive Post Params"
   echo "30 WAF Bypass Unicode"
   echo "31 WAF Bypass Excessive Json Keys"
-  echo "32 Exercise Routes to Report Issues (No exploits)"
+  echo "32 Exercise Routes on QA to Report Issues (No exploits)"
+  echo "33 Exercise Routes on PROD to Report Issues (No exploits)"
   echo "---------------------"
 }
 
@@ -549,7 +573,12 @@ while true; do
     ;;
     32)
       echo "Exercise Routes to Report Issues (No exploits)"
-      preformRouteExercise
+      preformRouteExerciseQAContainers
+      read -p "Press Enter to continue..."
+    ;;
+    33)
+      echo "Exercise Routes to Report Issues (No exploits)"
+      preformRouteExerciseProdContainers
       read -p "Press Enter to continue..."
     ;;
     *)
