@@ -15,6 +15,16 @@ while [[ $# -gt 0 ]]; do
       jndiserver="$2"
       shift 2
       ;;
+    -qa)
+      emailserviceport=8081
+      petclinicport=8080 
+      shift
+      ;;
+    -prod)
+      emailserviceport=8181
+      petclinicport=8180 
+      shift
+      ;;
     -w|--waf)
       emailserviceport=81
       petclinicport=80
