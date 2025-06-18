@@ -16,6 +16,7 @@ jobs:
   generate_fixes:
     name: Generate Fixes
     runs-on: ubuntu-latest
+    environment: Petclinic
     if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
     steps:
       - name: Checkout repository
