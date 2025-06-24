@@ -24,6 +24,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.Collection;
+import java.util.UUID;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Controller;
@@ -169,6 +170,21 @@ class PetController {
 		return "pets/uploadForm"; // Create this Thymeleaf template
 	}
 
+	/**
+	 * Creates a safe filename for storage by generating a UUID and preserving the original extension
+	 * This prevents path traversal vulnerabilities
+	 *
+	 * @param originalFilename The original filename from the uploaded file
+	 * @return A secure filename with UUID and original extension
+	 */
+	private String generateSecureFilename(String originalFilename) {
+		String fileExtension = "";
+		if (originalFilename != null && originalFilename.contains(".")) {
+			fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
+		}
+		return UUID.randomUUID().toString() + fileExtension;
+	}
+
 	@PostMapping("/pets/{petId}/upload")
 	public String handleFileUpload(@PathVariable int ownerId, @PathVariable int petId,
 								   @RequestParam("file") MultipartFile file,
@@ -186,9 +202,10 @@ class PetController {
 			if(pet.getPhotoPath()!=null ) {
 				System.out.println("PHTOTO SAVED : " + pet.getPhotoPath());
 			}
-			String fileName = file.getOriginalFilename();
+			// Generate secure filename instead of using the original one directly
+			String secureFileName = generateSecureFilename(file.getOriginalFilename());
 			Path tmpDir = Paths.get(System.getProperty("java.io.tmpdir"));
-			Path filePath = tmpDir.resolve(fileName);
+			Path filePath = tmpDir.resolve(secureFileName);
 			System.out.println(filePath.toString());
 			pet.setPhotoPath(filePath.toString());
 
