@@ -17,6 +17,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.PreparedStatement;
 import java.util.List;
 import java.util.Map;
 
@@ -157,8 +158,12 @@ public class CustomerController {
 	 */
 	@GetMapping("/customers/{customerId}/delete")
 	public String deleteCustomer(@PathVariable("customerId") String customerId) throws SQLException, IOException {
-		try (Connection connection = dataSource.getConnection(); Statement statement = connection.createStatement()) {
-			statement.execute("DELETE FROM customers WHERE id = " + customerId);
+		// Fix SQL injection vulnerability using PreparedStatement
+		String sql = "DELETE FROM customers WHERE id = ?";
+		try (Connection connection = dataSource.getConnection(); 
+			 PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+			preparedStatement.setString(1, customerId);
+			preparedStatement.execute();
 		}
 		return "welcome";
 	}
